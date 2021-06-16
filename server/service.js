@@ -19,7 +19,7 @@ module.exports = (config) => {
 
   service.put(
     "/register/:servicename/:serviceversion/:serviceport",
-    (req, resp, next) => {
+    (req, resp) => {
       const { servicename, serviceversion, serviceport } = req.params;
       //IP Address some machines could have ip v6 version, wrapping of IPv6 address
 
@@ -39,8 +39,22 @@ module.exports = (config) => {
   );
   service.delete(
     "/register/:servicename/:serviceversion/:serviceport",
-    (req, resp, next) => {
-      return next("Not Implemented");
+    (req, resp) => {
+      const { servicename, serviceversion, serviceport } = req.params;
+      //IP Address some machines could have ip v6 version, wrapping of IPv6 address
+
+      const serviceip = req.connection.remoteAddress.includes("::")
+        ? `[${req.connection.remoteAddress}]`
+        : req.connection.remoteAddress;
+
+      const serviceKey = serviceRegistry.unregister(
+        servicename,
+        serviceversion,
+        serviceip,
+        serviceport
+      );
+
+      return resp.json({ result: serviceKey });
     }
   );
   service.get("/find/:servicename/:serviceversion", (req, resp, next) => {
